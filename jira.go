@@ -84,3 +84,19 @@ func (r *Jira) AssignIssue(issue string, account string) error {
 
 	return nil
 }
+
+func (r *Jira) GetAccount(search string) (string, error) {
+
+	fetchUri := fmt.Sprintf("%s%s/user/serach?query=%s", r.BaseUrl, r.ApiPath, search)
+	// logrus.Warn(fetchUri)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		Get(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops", resp.Body()[:])
+		return "", resperr
+	}
+
+	return string(resp.Body()[:]), nil
+}
