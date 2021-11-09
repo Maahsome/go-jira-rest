@@ -87,7 +87,7 @@ func (r *Jira) AssignIssue(issue string, account string) error {
 
 func (r *Jira) GetAccount(search string) (string, error) {
 
-	fetchUri := fmt.Sprintf("%s%s/user/serach?query=%s", r.BaseUrl, r.ApiPath, search)
+	fetchUri := fmt.Sprintf("%s%s/user/search?query=%s", r.BaseUrl, r.ApiPath, search)
 	// logrus.Warn(fetchUri)
 	resp, resperr := r.Client.R().
 		SetHeader("Content-Type", "application/json").
