@@ -66,3 +66,21 @@ func (r *Jira) AddComment(issue string, comment string) (string, error) {
 
 	return string(resp.Body()[:]), nil
 }
+
+func (r *Jira) AssignIssue(issue string, account string) error {
+
+	fetchUri := fmt.Sprintf("%s%s/issue/%s/assignee", r.BaseUrl, r.ApiPath, issue)
+	// logrus.Warn(fetchUri)
+	body := fmt.Sprintf("{ \"accountId\": \"%s\" }", account)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		Put(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops", resp.Body()[:])
+		return resperr
+	}
+
+	return nil
+}
