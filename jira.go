@@ -243,6 +243,7 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 	for {
 		// https://alteryx.atlassian.net/rest/agile/1.0/board/388/sprint/723/issue
 		fetchUri := fmt.Sprintf("%s%s/board/%s/sprint/%s/issue?startAt=%d", r.BaseUrl, r.AgilePath, board, sprint, startAt)
+		logrus.Warn(fetchUri)
 
 		resp, resperr := r.Client.R().
 			SetHeader("Content-Type", "application/json").
@@ -252,7 +253,7 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 			logrus.WithError(resperr).Error("Oops")
 			return "", resperr
 		}
-		logrus.Warn(resp.Body()[:])
+		logrus.Warn(fmt.Sprintf("%#v", resp))
 		var sprintIssues SprintIssues
 		berr := json.Unmarshal([]byte(resp.Body()), &sprintIssues)
 		if berr != nil {
