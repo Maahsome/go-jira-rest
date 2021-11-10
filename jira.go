@@ -18,11 +18,11 @@ type Jira struct {
 }
 
 type Boards struct {
-	MaxResults int      `json:"maxResults"`
-	StartAt    int      `json:"startAt"`
-	Total      int      `json:"total"`
-	IsLast     bool     `json:"isLast"`
-	Values     []Values `json:"values"`
+	MaxResults int           `json:"maxResults"`
+	StartAt    int           `json:"startAt"`
+	Total      int           `json:"total"`
+	IsLast     bool          `json:"isLast"`
+	Values     []BoardValues `json:"values"`
 }
 
 type Location struct {
@@ -35,12 +35,21 @@ type Location struct {
 	Name           string `json:"name"`
 }
 
-type Values struct {
+type BoardValues struct {
 	ID       int      `json:"id"`
 	Self     string   `json:"self"`
 	Name     string   `json:"name"`
 	Type     string   `json:"type"`
 	Location Location `json:"location"`
+}
+
+type SprintIssues struct {
+	Expand     string        `json:"expand"`
+	StartAt    int           `json:"startAt"`
+	MaxResults int           `json:"maxResults"`
+	IsLast     bool          `json:"isLast"`
+	Total      int           `json:"total"`
+	Issues     []interface{} `json:"issues"`
 }
 
 // New generate a new jira client
@@ -175,7 +184,7 @@ func (r *Jira) TransitionIssue(issue string, transitionId string) (string, error
 func (r *Jira) GetBoards() (string, error) {
 
 	startAt := 0
-	var returnValues []Values
+	var returnValues []BoardValues
 
 	for {
 		fetchUri := fmt.Sprintf("%s%s/board?startAt=%d", r.BaseUrl, r.AgilePath, startAt)
@@ -225,4 +234,47 @@ func (r *Jira) GetActiveSprint(board string) (string, error) {
 	}
 
 	return string(resp.Body()[:]), nil
+}
+
+func (r *Jira) GetSprintIssues(board string) (string, error) {
+
+	startAt := 0
+	var returnValues []interface{}
+
+	for {
+		// https://alteryx.atlassian.net/rest/agile/1.0/board/388/sprint/723/issue
+		fetchUri := fmt.Sprintf("%s%s/board?startAt=%d", r.BaseUrl, r.AgilePath, startAt)
+
+		resp, resperr := r.Client.R().
+			SetHeader("Content-Type", "application/json").
+			Get(fetchUri)
+
+		if resperr != nil {
+			logrus.WithError(resperr).Error("Oops")
+			return "", resperr
+		}
+
+		var sprintIssues SprintIssues
+		berr := json.Unmarshal([]byte(resp.Body()), &sprintIssues)
+		if berr != nil {
+			fmt.Printf("Error parsing JSON file: %s\n", berr)
+		}
+
+		returnValues = append(returnValues, sprintIssues.Issues...)
+
+		startAt += 50
+		if sprintIssues.Total < sprintIssues.MaxResults {
+			break
+		}
+		if sprintIssues.IsLast {
+			break
+		}
+	}
+
+	json, jerr := json.Marshal(returnValues)
+	if jerr != nil {
+		fmt.Printf("Error parsing JSON file: %s\n", jerr)
+	}
+
+	return string(json[:]), nil
 }
