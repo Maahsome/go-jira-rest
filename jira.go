@@ -275,5 +275,6 @@ func (r *Jira) GetSprintIssues(board string, sprint int) (string, error) {
 		fmt.Printf("Error parsing JSON file: %s\n", jerr)
 	}
 
-	return string(jsonData[:]), nil
+	issueList := fmt.Sprintf("{ \"issues\": %s }", jsonData)
+	return issueList, nil
 }
