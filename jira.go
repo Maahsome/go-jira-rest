@@ -44,12 +44,12 @@ type BoardValues struct {
 }
 
 type SprintIssues struct {
-	Expand     string        `json:"expand"`
-	StartAt    int           `json:"startAt"`
-	MaxResults int           `json:"maxResults"`
-	IsLast     bool          `json:"isLast"`
-	Total      int           `json:"total"`
-	Issues     []interface{} `json:"issues"`
+	Expand     string     `json:"expand"`
+	StartAt    int        `json:"startAt"`
+	MaxResults int        `json:"maxResults"`
+	IsLast     bool       `json:"isLast"`
+	Total      int        `json:"total"`
+	Issues     []struct{} `json:"issues"`
 }
 
 // New generate a new jira client
@@ -260,7 +260,7 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 			fmt.Printf("Error parsing JSON file: %s\n", berr)
 		}
 
-		returnValues = append(returnValues, sprintIssues.Issues...)
+		returnValues = append(returnValues, sprintIssues.Issues)
 
 		startAt += 50
 		if sprintIssues.Total < sprintIssues.MaxResults {
