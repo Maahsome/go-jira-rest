@@ -47,7 +47,6 @@ type SprintIssues struct {
 	Expand     string     `json:"expand"`
 	StartAt    int        `json:"startAt"`
 	MaxResults int        `json:"maxResults"`
-	IsLast     bool       `json:"isLast"`
 	Total      int        `json:"total"`
 	Issues     []struct{} `json:"issues"`
 }
@@ -253,7 +252,7 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 			logrus.WithError(resperr).Error("Oops")
 			return "", resperr
 		}
-
+		logrus.Warn(resp.Body()[:])
 		var sprintIssues SprintIssues
 		berr := json.Unmarshal([]byte(resp.Body()), &sprintIssues)
 		if berr != nil {
@@ -266,9 +265,9 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 		if sprintIssues.Total < sprintIssues.MaxResults {
 			break
 		}
-		if sprintIssues.IsLast {
-			break
-		}
+		// if sprintIssues.IsLast {
+		// 	break
+		// }
 	}
 
 	json, jerr := json.Marshal(returnValues)
