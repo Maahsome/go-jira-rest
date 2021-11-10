@@ -52,7 +52,7 @@ func New(baseUrl, apiPath, agilePath, user, token string) *Jira {
 		apiPath = "/rest/api/3"
 	}
 	if agilePath == "" {
-		agilePath = "rest/agile/1.0"
+		agilePath = "/rest/agile/1.0"
 	}
 	restClient.SetBasicAuth(user, token)
 
