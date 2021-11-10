@@ -105,3 +105,37 @@ func (r *Jira) GetAccount(search string) (string, error) {
 
 	return string(resp.Body()[:]), nil
 }
+
+func (r *Jira) GetTransitions(issue string) (string, error) {
+
+	fetchUri := fmt.Sprintf("%s%s/issue/%s/transitions", r.BaseUrl, r.ApiPath, issue)
+	// logrus.Warn(fetchUri)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		Get(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops")
+		return "", resperr
+	}
+
+	return string(resp.Body()[:]), nil
+}
+
+func (r *Jira) TransitionIssue(issue string, transitionId string) (string, error) {
+
+	fetchUri := fmt.Sprintf("%s%s/issue/%s/transitions", r.BaseUrl, r.ApiPath, issue)
+	// logrus.Warn(fetchUri)
+	body := fmt.Sprintf("{ \"transition\": { \"id\": %s } }", transitionId)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		Post(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops")
+		return "", resperr
+	}
+
+	return string(resp.Body()[:]), nil
+}
