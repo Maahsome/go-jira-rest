@@ -44,11 +44,12 @@ type BoardValues struct {
 }
 
 type SprintIssues struct {
-	Expand     string     `json:"expand"`
-	StartAt    int        `json:"startAt"`
-	MaxResults int        `json:"maxResults"`
-	Total      int        `json:"total"`
-	Issues     []struct{} `json:"issues"`
+	Expand     string        `json:"expand"`
+	StartAt    int           `json:"startAt"`
+	MaxResults int           `json:"maxResults"`
+	IsLast     bool          `json:"isLast"`
+	Total      int           `json:"total"`
+	Issues     []interface{} `json:"issues"`
 }
 
 // New generate a new jira client
@@ -243,7 +244,6 @@ func (r *Jira) GetSprintIssues(board string, sprint int) (string, error) {
 	for {
 		// https://alteryx.atlassian.net/rest/agile/1.0/board/388/sprint/723/issue
 		fetchUri := fmt.Sprintf("%s%s/board/%s/sprint/%d/issue?startAt=%d", r.BaseUrl, r.AgilePath, board, sprint, startAt)
-		logrus.Warn(fetchUri)
 
 		resp, resperr := r.Client.R().
 			SetHeader("Content-Type", "application/json").
@@ -259,15 +259,15 @@ func (r *Jira) GetSprintIssues(board string, sprint int) (string, error) {
 			fmt.Printf("Error parsing JSON file: %s\n", berr)
 		}
 
-		returnValues = append(returnValues, sprintIssues.Issues)
+		returnValues = append(returnValues, sprintIssues.Issues...)
 
 		startAt += 50
 		if sprintIssues.Total < sprintIssues.MaxResults {
 			break
 		}
-		// if sprintIssues.IsLast {
-		// 	break
-		// }
+		if sprintIssues.IsLast {
+			break
+		}
 	}
 
 	jsonData, jerr := json.Marshal(returnValues)
