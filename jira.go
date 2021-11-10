@@ -69,9 +69,14 @@ func (r *Jira) AddComment(issue string, comment string) (string, error) {
 
 func (r *Jira) AssignIssue(issue string, account string) error {
 
+	var body string
 	fetchUri := fmt.Sprintf("%s%s/issue/%s/assignee", r.BaseUrl, r.ApiPath, issue)
 	// logrus.Warn(fetchUri)
-	body := fmt.Sprintf("{ \"accountId\": \"%s\" }", account)
+	if account == "null" {
+		body = fmt.Sprintf("{ \"accountId\": %s }", account)
+	} else {
+		body = fmt.Sprintf("{ \"accountId\": \"%s\" }", account)
+	}
 	resp, resperr := r.Client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
