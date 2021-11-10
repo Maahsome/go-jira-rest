@@ -236,14 +236,14 @@ func (r *Jira) GetActiveSprint(board string) (string, error) {
 	return string(resp.Body()[:]), nil
 }
 
-func (r *Jira) GetSprintIssues(board string) (string, error) {
+func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 
 	startAt := 0
 	var returnValues []interface{}
 
 	for {
 		// https://alteryx.atlassian.net/rest/agile/1.0/board/388/sprint/723/issue
-		fetchUri := fmt.Sprintf("%s%s/board?startAt=%d", r.BaseUrl, r.AgilePath, startAt)
+		fetchUri := fmt.Sprintf("%s%s/board/%s/sprint/%s/issue?startAt=%d", r.BaseUrl, r.AgilePath, board, sprint, startAt)
 
 		resp, resperr := r.Client.R().
 			SetHeader("Content-Type", "application/json").
