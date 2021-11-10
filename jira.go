@@ -21,7 +21,7 @@ func New(baseUrl, apiPath, user, token string) *Jira {
 	restClient := resty.New()
 
 	if apiPath == "" {
-		apiPath = "/rest/api/2"
+		apiPath = "/rest/api/3"
 	}
 	restClient.SetBasicAuth(user, token)
 
@@ -69,14 +69,9 @@ func (r *Jira) AddComment(issue string, comment string) (string, error) {
 
 func (r *Jira) AssignIssue(issue string, account string) error {
 
-	var body string
 	fetchUri := fmt.Sprintf("%s%s/issue/%s/assignee", r.BaseUrl, r.ApiPath, issue)
 	// logrus.Warn(fetchUri)
-	if account == "-1" {
-		body = fmt.Sprintf("{ \"name\": \"%s\" }", account)
-	} else {
-		body = fmt.Sprintf("{ \"accountId\": \"%s\" }", account)
-	}
+	body := fmt.Sprintf("{ \"accountId\": \"%s\" }", account)
 	resp, resperr := r.Client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
