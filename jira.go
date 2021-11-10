@@ -210,3 +210,19 @@ func (r *Jira) GetBoards() (string, error) {
 
 	return string(json[:]), nil
 }
+
+func (r *Jira) GetActiveSprint(board string) (string, error) {
+
+	// https://alteryx.atlassian.net/rest/agile/1.0/board/388/sprint?state=active
+	fetchUri := fmt.Sprintf("%s%s/board/%s/sprint?state=active", r.BaseUrl, r.AgilePath, board)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		Get(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops")
+		return "", resperr
+	}
+
+	return string(resp.Body()[:]), nil
+}
