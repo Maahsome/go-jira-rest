@@ -235,14 +235,14 @@ func (r *Jira) GetActiveSprint(board string) (string, error) {
 	return string(resp.Body()[:]), nil
 }
 
-func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
+func (r *Jira) GetSprintIssues(board string, sprint int) (string, error) {
 
 	startAt := 0
 	var returnValues []interface{}
 
 	for {
 		// https://alteryx.atlassian.net/rest/agile/1.0/board/388/sprint/723/issue
-		fetchUri := fmt.Sprintf("%s%s/board/%s/sprint/%s/issue?startAt=%d", r.BaseUrl, r.AgilePath, board, sprint, startAt)
+		fetchUri := fmt.Sprintf("%s%s/board/%s/sprint/%d/issue?startAt=%d", r.BaseUrl, r.AgilePath, board, sprint, startAt)
 		logrus.Warn(fetchUri)
 
 		resp, resperr := r.Client.R().
@@ -253,7 +253,6 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 			logrus.WithError(resperr).Error("Oops")
 			return "", resperr
 		}
-		logrus.Warn(fmt.Sprintf("%#v", resp))
 		var sprintIssues SprintIssues
 		berr := json.Unmarshal([]byte(resp.Body()), &sprintIssues)
 		if berr != nil {
@@ -271,10 +270,10 @@ func (r *Jira) GetSprintIssues(board string, sprint string) (string, error) {
 		// }
 	}
 
-	json, jerr := json.Marshal(returnValues)
+	jsonData, jerr := json.Marshal(returnValues)
 	if jerr != nil {
 		fmt.Printf("Error parsing JSON file: %s\n", jerr)
 	}
 
-	return string(json[:]), nil
+	return string(jsonData[:]), nil
 }
