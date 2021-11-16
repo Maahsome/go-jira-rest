@@ -94,7 +94,24 @@ func (r *Jira) AddComment(issue string, comment string) (string, error) {
 
 	fetchUri := fmt.Sprintf("%s%s/issue/%s/comment", r.BaseUrl, r.ApiPath, issue)
 	// logrus.Warn(fetchUri)
-	body := fmt.Sprintf("{ \"body\": \"%s\" }", comment)
+	commentTemplate := `{
+	"body": {
+		"type": "doc",
+		"version": 1,
+		"content": [
+		  {
+			"type": "paragraph",
+			"content": [
+			  {
+				"text": "%s",
+				"type": "text"
+			  }
+			]
+		  }
+		]
+	  }
+	}`
+	body := fmt.Sprintf(commentTemplate, comment)
 	resp, resperr := r.Client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
