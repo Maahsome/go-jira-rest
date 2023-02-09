@@ -52,6 +52,26 @@ type SprintIssues struct {
 	Issues     []interface{} `json:"issues"`
 }
 
+type Comment struct {
+	Body CommentBody `json:"body"`
+}
+
+type CommentBody struct {
+	Content []CommentBodyContent `json:"content"`
+	Type    string               `json:"type"`
+	Version int                  `json:"version"`
+}
+
+type CommentBodyContent struct {
+	Content []CommentBodyContentContent `json:"content"`
+	Type    string                      `json:"type"`
+}
+
+type CommentBodyContentContent struct {
+	Text string `json:"text"`
+	Type string `json:"type"`
+}
+
 // New generate a new jira client
 func New(baseUrl, apiPath, agilePath, user, token string) *Jira {
 
@@ -112,6 +132,27 @@ func (r *Jira) AddComment(issue string, comment string) (string, error) {
 	  }
 	}`
 	body := fmt.Sprintf(commentTemplate, comment)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		Post(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops")
+		return "", resperr
+	}
+
+	return string(resp.Body()[:]), nil
+}
+
+func (r *Jira) AddCommentMulti(issue string, comment *Comment) (string, error) {
+
+	fetchUri := fmt.Sprintf("%s%s/issue/%s/comment", r.BaseUrl, r.ApiPath, issue)
+
+	body, merr := json.Marshal(comment)
+	if merr != nil {
+		return "", merr
+	}
 	resp, resperr := r.Client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
