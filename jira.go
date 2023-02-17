@@ -294,6 +294,90 @@ func (r *Jira) GetActiveSprint(board string) (string, error) {
 	return string(resp.Body()[:]), nil
 }
 
+func (r *Jira) GetIssuesViaJQL(jql string) ([]IssuesIssue, error) {
+
+	// 	curl --request POST \
+	//   --url 'https://alteryx.atlassian.net/rest/api/3/search' \
+	//   --user 'christopher.maahs@alteryx.com:${JIRA_TOKEN}' \
+	//   --header 'Accept: application/json' \
+	//   --header 'Content-Type: application/json' \
+	//   --data '{
+	//   "expand": [
+	//     "names",
+	//     "schema",
+	//     "operations"
+	//   ],
+	//   "fields": [
+	//     "summary",
+	//     "status",
+	//     "assignee"
+	//   ],
+	//   "fieldsByKeys": false,
+	//   "jql": "project = TSAASPD",
+	//   "maxResults": 15,
+	//   "startAt": 0
+	// }'
+
+	startAt := 0
+	var returnValues []IssuesIssue
+
+	searchTpl := `{
+  "expand": [
+    "names",
+    "schema",
+    "operations"
+  ],
+  "fields": [
+    "summary",
+    "status",
+    "assignee"
+  ],
+  "fieldsByKeys": false,
+  "jql": "%s",
+  "maxResults": 15,
+  "startAt": %d
+}`
+
+	for {
+		fetchUri := fmt.Sprintf("%s%s/search", r.BaseUrl, r.ApiPath)
+
+		body := fmt.Sprintf(searchTpl, jql, startAt)
+		resp, resperr := r.Client.R().
+			SetHeader("Content-Type", "application/json").
+			SetBody(body).
+			Post(fetchUri)
+
+		if resperr != nil {
+			logrus.WithError(resperr).Error("Oops")
+			return returnValues, resperr
+		}
+
+		var issues Issues
+		berr := json.Unmarshal([]byte(resp.Body()), &issues)
+		if berr != nil {
+			// logrus.WithError(berr).Error("Error parsing ISSUES JSON data")
+			fmt.Printf("Error parsing ISSUES JSON file: %s\n", berr)
+		}
+
+		returnValues = append(returnValues, issues.Issues...)
+
+		startAt += 15
+		if issues.Total < issues.MaxResults {
+			break
+		}
+		if issues.IsLast {
+			break
+		}
+	}
+
+	// json, jerr := json.Marshal(returnValues)
+	// if jerr != nil {
+	// 	fmt.Printf("Error parsing JSON file: %s\n", jerr)
+	// }
+
+	return returnValues, nil
+}
+
 func (r *Jira) GetSprintIssues(board string, sprint int) (string, error) {
 
 	startAt := 0
