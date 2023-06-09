@@ -166,6 +166,64 @@ func (r *Jira) AddCommentMulti(issue string, comment *Comment) (string, error) {
 	return string(resp.Body()[:]), nil
 }
 
+func (r *Jira) SetDescription(issue string, description string) (bool, error) {
+
+	fetchUri := fmt.Sprintf("%s%s/issue/%s", r.BaseUrl, r.ApiPath, issue)
+	descriptionTemplate := `{
+	"fields": {
+	  "description": {
+		  "type": "doc",
+		  "version": 1,
+		  "content": [
+		    {
+			  "type": "paragraph",
+			  "content": [
+			    {
+				  "text": "%s",
+				  "type": "text"
+			    }
+			  ]
+		    }
+		  ]
+	    }
+	  }
+	}`
+
+	body := fmt.Sprintf(descriptionTemplate, description)
+	resp, resperr := r.Client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		Put(fetchUri)
+
+	if resperr != nil {
+		logrus.WithError(resperr).Error("Oops")
+		return false, resperr
+	}
+
+	return resp.IsSuccess(), nil
+}
+
+// func (r *Jira) SetDescriptionMulti(issue string, comment *Comment) (string, error) {
+
+// 	fetchUri := fmt.Sprintf("%s%s/issue/%s", r.BaseUrl, r.ApiPath, issue)
+
+// 	body, merr := json.Marshal(comment)
+// 	if merr != nil {
+// 		return "", merr
+// 	}
+// 	resp, resperr := r.Client.R().
+// 		SetHeader("Content-Type", "application/json").
+// 		SetBody(body).
+// 		Put(fetchUri)
+
+// 	if resperr != nil {
+// 		logrus.WithError(resperr).Error("Oops")
+// 		return "", resperr
+// 	}
+
+// 	return string(resp.Body()[:]), nil
+// }
+
 func (r *Jira) AssignIssue(issue string, account string) error {
 
 	var body string
